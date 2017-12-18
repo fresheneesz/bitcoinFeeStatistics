@@ -42,7 +42,7 @@ var BitcoinInfo = require("./BitcoinInfo")
 
 var b = BitcoinInfo()
 
-var hoursToLookBack = 24//24*3
+var hoursToLookBack = 3
 var blocksToLookBack = hoursToLookBack*6 // ~6 blocks per hour
 
 getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
