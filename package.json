@@ -1,0 +1,17 @@
+{"name":"bitcoinFeeStatistics",
+ "version":"1.0.0",
+ "main":"printFeeStats.js",
+ "description": "Calculates statistics about the last N blocks",
+ "keywords": ["bitcoin", "fee", "node.js"],
+ "dependencies":{
+   "moment":"*",
+   "proto":"*",
+   "request-promise":"*",
+     "request":"*",
+   "bluebird":"*"
+ },
+ "repository": {
+   "type": "git",
+   "url": "git://github.com/fresheneesz/bitcoinFeeStatistics"
+ }
+}

@@ -1,0 +1,6 @@
+/node_modules
+/.idea
+blockAnalysisInfo2
+proto.iml
+npm-debug.log
+testBlockHash
