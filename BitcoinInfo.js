@@ -10,16 +10,22 @@ var timestamp = Date.now();
 module.exports = proto(function() {
 
     this.latestBlock = function() {
+        return this.latestBlockHash().then(function(hash) {
+            return that.getBlock(hash)
+        })
+    }
+    
+    this.latestBlockHash = function() {
         var that = this
 
-        if(fs.existsSync('./testBlockHash')) {
-            return this.getBlock(JSON.parse(fs.readFileSync('./testBlockHash')))
-        } else {
+        // if(fs.existsSync('./testBlockHash')) {
+        //     return Promise.resolve(JSON.parse(fs.readFileSync('./testBlockHash')))
+        // } else {
             return jsonReq('https://blockchain.info/latestblock').then(function(latestBlockInfo) {
                 fs.writeFileSync('./testBlockHash', JSON.stringify(latestBlockInfo.hash))
-                return that.getBlock(latestBlockInfo.hash)
+                return latestBlockInfo.hash
             })
-        }
+        // }
     }
 
     this.getBlock = function(hash) {
