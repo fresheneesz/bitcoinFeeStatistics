@@ -75,8 +75,8 @@ getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
     console.log(Math.round(totalBatchOutputs*100/(segwitTxEstimate+legacyTxEstimate))+'% transactions batched (estimated) ('+(totalBatchOutputs)+'/'+(segwitTxEstimate+legacyTxEstimate)+')')
 
     var feePerBatchedTx = (cai.legacyBatchTxFeeSum+cai.segwitBatchTxFeeSum)/(cai.legacyBatchTxSizeSum+cai.segwitBatchTxSizeSum)
-    console.log("Avg fee per batched transaction: "+renderPrecision(feePerBatchedTx,1)+' sat/byte')
-    console.log("Avg size per batched transaction: "+renderPrecision((cai.legacyBatchTxSizeSum+cai.segwitBatchTxSizeSum)/totalBatchOutputs,1)+' bytes')
+    console.log("Avg fee per batch payment: "+renderPrecision(feePerBatchedTx,1)+' sat/byte')
+    console.log("Avg size per batch payment: "+renderPrecision((cai.legacyBatchTxSizeSum+cai.segwitBatchTxSizeSum)/totalBatchOutputs,1)+' bytes')
 
     console.log("CPFPs found: "+combinedAnalysisInfo.cpfpCount)
     console.log()
@@ -109,17 +109,20 @@ getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
     }
 
     console.log("Batch Transactions: \t\t"+cai.segwitBatchedTxs+'\t\t'+cai.legacyBatchedTxs+'\t\ttransactions')
-    console.log("Avg transactions per batch: \t"+renderPrecision(cai.segwitBatchOutputsSum/cai.segwitBatchedTxs,1)+'\t\t'
-        +renderPrecision(cai.legacyBatchOutputsSum/cai.legacyBatchedTxs,1)+'\t\tbatched-transactions/batch'
+    console.log("Avg payments per batch: \t"+renderPrecision(cai.segwitBatchOutputsSum/cai.segwitBatchedTxs,1)+'\t\t'
+        +renderPrecision(cai.legacyBatchOutputsSum/cai.legacyBatchedTxs,1)+'\t\tbatched-payments/batch'
     )
-    console.log("Estimated % batched txns: \t"+renderPrecision(100*cai.segwitBatchOutputsSum/segwitTxEstimate, 1)+'%\t\t'
+    console.log("Estimated % batched payments: \t"+renderPrecision(100*cai.segwitBatchOutputsSum/segwitTxEstimate, 1)+'%\t\t'
         + renderPrecision(100*cai.legacyBatchOutputsSum/legacyTxEstimate, 1)+'%'
     )
-    console.log("Avg fee per batched tx: \t"+renderPrecision(cai.segwitBatchTxFeeSum/cai.segwitBatchTxSizeSum,1)+'\t\t'
+    console.log("Avg fee per batched payment: \t"+renderPrecision(cai.segwitBatchTxFeeSum/cai.segwitBatchTxSizeSum,1)+'\t\t'
         +renderPrecision(cai.legacyBatchTxFeeSum/cai.legacyBatchTxSizeSum,1)+'\t\tsat/byte'
     )
-    console.log("Avg size per batched tx: \t"+renderPrecision(cai.segwitBatchTxSizeSum/cai.segwitBatchOutputsSum,1)+'\t\t'
-        +renderPrecision(cai.legacyBatchTxSizeSum/cai.legacyBatchOutputsSum,1)+'\t\tbytes/tx'
+    console.log("Median fee per batched payment: "+renderPrecision(segwitStats.batchMedian,1)+'\t\t'
+        +renderPrecision(legacyStats.batchMedian,1)+'\t\tsat/byte'
+    )
+    console.log("Avg size per batched payment: \t"+renderPrecision(cai.segwitBatchTxSizeSum/cai.segwitBatchOutputsSum,1)+'\t\t'
+        +renderPrecision(cai.legacyBatchTxSizeSum/cai.legacyBatchOutputsSum,1)+'\t\tbytes/payment'
     )
 })
 
@@ -130,6 +133,10 @@ function renderTransactionStats(transactionInfoObjects) {
 
     var feeCounts = calcFeeCounts(transactionInfoObjects)
 
+    var batchTransactions = transactionInfoObjects.filter(function(info){
+        return info.outputCount > 2
+    })
+
     return {
         min: p(transactionInfoObjects[0].feePerByte),
         p1: p(percentile(transactionInfoObjects, .001)),
@@ -137,7 +144,8 @@ function renderTransactionStats(transactionInfoObjects) {
         ten: p(percentile(transactionInfoObjects, .1)),
         fifty: p(percentile(transactionInfoObjects, .5)),
         mean: p(mean(transactionInfoObjects)),
-        feeCounts: feeCounts
+        feeCounts: feeCounts,
+        batchMedian: percentile(batchTransactions,.5)
     }
 }
 function calcFeeCounts(transactionInfoObjects) {
