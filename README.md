@@ -8,32 +8,34 @@ Here's an example of the output
 
 ```
 293/432 blocks left to download      429 - "Maximum concurrent requests for this endpoint reached. Please try again shortly."
-Block heights 513041-513100: 8 hours (2018-03-11 09:52:32 - 2018-03-11 17:55:03)
-30% segwit transactions (16696/55023)
-49% transactions batched (estimated) (48121/98870)
-Avg fee per batched transaction: 34.3 sat/byte
-CPFPs found: 5710
+Block heights 513071-513142: 10 hours (2018-03-11 14:07:12 - 2018-03-11 23:58:49)
+27% segwit transactions (15614/57541)
+61% transactions batched (estimated) (78900/129433)
+Avg fee per batched transaction: 34.5 sat/byte
+Avg size per batched transaction: 104 bytes
+CPFPs found: 5835
 
                                 Segwit          Legacy
 Min fee:                        0.4             0       sat/byte
 0.1 percentile fee:             0.5             1       sat/byte
 1 percentile fee:               0.7             1       sat/byte
-10th percentile fee:            2.7             2.2     sat/byte
-50th percentile fee (median):   7.1             10.7    sat/byte
-Mean fee:                       11              34.6    sat/byte
-0-5 sat/byte:                   19.6% (3268)    22.7% (8717)    transactions
-5-10 sat/byte:                  69.7% (11638)   20.1% (7697)    transactions
-10-15 sat/byte:                 3% (505)        25.4% (9723)    transactions
-15-20 sat/byte:                 1.9% (320)      5.3% (2022)     transactions
-20-50 sat/byte:                 3.1% (522)      12.4% (4743)    transactions
-50-100 sat/byte:                1.3% (209)      6.2% (2373)     transactions
-100-200 sat/byte:               0.9% (145)      4.4% (1697)     transactions
-200-500 sat/byte:               0.5% (87)       2.3% (863)      transactions
-500+ sat/byte:                  0% (1)          1.3% (491)      transactions
-Batch Transactions:             1133            3139            transactions
-Avg transactions per batch:     4.1             13.8            batched-transactions/batch
-Estimated % batched txns:       23%             55.3%
-Avg fee per batched tx:         18.3            38.2            sat/byte
+10th percentile fee:            2.5             2.8     sat/byte
+50th percentile fee (median):   6.8             10.1    sat/byte
+Mean fee:                       15.1            35.8    sat/byte
+0-5 sat/byte:                   23.5% (3675)    25.9% (10861)   transactions
+5-10 sat/byte:                  63.9% (9981)    20.7% (8664)    transactions
+10-15 sat/byte:                 2.3% (359)      24.4% (10240)   transactions
+15-20 sat/byte:                 2.3% (354)      3.5% (1466)     transactions
+20-50 sat/byte:                 3.2% (496)      10.3% (4298)    transactions
+50-100 sat/byte:                1.6% (252)      6.3% (2638)     transactions
+100-200 sat/byte:               1.7% (270)      5% (2079)       transactions
+200-500 sat/byte:               1.4% (221)      2.7% (1150)     transactions
+500+ sat/byte:                  0% (5)          1.3% (530)      transactions
+Batch Transactions:             1423            5583            transactions
+Avg transactions per batch:     4.3             13              batched-transactions/batch
+Estimated % batched txns:       30.2%           66.7%
+Avg fee per batched tx:         23.8            36.5            sat/byte
+Avg size per batched tx:        214.3           94.7            bytes/tx
 ```
 
 Note that "batched-transactions/batch" is calculated via the number of outputs in a transaction with 2 or more outputs minus 1 (to remove the expected change output).
@@ -53,6 +55,7 @@ To change how far back you're looking, change the `hoursToLookBack` variable ins
 Version History
 ===============
 
+* `1.2.1` - Adding info about batched transaction sizes
 * `1.2.0` - Adding info about fee rates for batched transactions
 * `1.1.0`
     * Adding batch transaction stats

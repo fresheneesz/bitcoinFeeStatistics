@@ -44,7 +44,7 @@ var b = BitcoinInfo()
 
 var analysisInfoFormatVersion = '1.2.0'  // should change anytime things are added to the stored feeInfo files
 
-var hoursToLookBack =  10//24*3
+var hoursToLookBack =  12//24*3
 var blocksToLookBack = hoursToLookBack*6 // ~6 blocks per hour
 
 getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
@@ -76,6 +76,7 @@ getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
 
     var feePerBatchedTx = (cai.legacyBatchTxFeeSum+cai.segwitBatchTxFeeSum)/(cai.legacyBatchTxSizeSum+cai.segwitBatchTxSizeSum)
     console.log("Avg fee per batched transaction: "+renderPrecision(feePerBatchedTx,1)+' sat/byte')
+    console.log("Avg size per batched transaction: "+renderPrecision((cai.legacyBatchTxSizeSum+cai.segwitBatchTxSizeSum)/totalBatchOutputs,1)+' bytes')
 
     console.log("CPFPs found: "+combinedAnalysisInfo.cpfpCount)
     console.log()
@@ -116,6 +117,9 @@ getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
     )
     console.log("Avg fee per batched tx: \t"+renderPrecision(cai.segwitBatchTxFeeSum/cai.segwitBatchTxSizeSum,1)+'\t\t'
         +renderPrecision(cai.legacyBatchTxFeeSum/cai.legacyBatchTxSizeSum,1)+'\t\tsat/byte'
+    )
+    console.log("Avg size per batched tx: \t"+renderPrecision(cai.segwitBatchTxSizeSum/cai.segwitBatchOutputsSum,1)+'\t\t'
+        +renderPrecision(cai.legacyBatchTxSizeSum/cai.legacyBatchOutputsSum,1)+'\t\tbytes/tx'
     )
 })
 

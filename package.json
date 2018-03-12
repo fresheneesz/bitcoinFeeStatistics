@@ -1,5 +1,5 @@
 {"name":"bitcoinFeeStatistics",
- "version":"1.2.0",
+ "version":"1.2.1",
  "main":"printFeeStats.js",
  "description": "Calculates statistics about the last N blocks",
  "keywords": ["bitcoin", "fee", "node.js"],
