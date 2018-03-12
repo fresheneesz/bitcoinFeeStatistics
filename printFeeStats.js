@@ -42,7 +42,7 @@ var BitcoinInfo = require("./BitcoinInfo")
 
 var b = BitcoinInfo()
 
-var analysisInfoFormatVersion = '1.1.0'  // should change anytime things are added to the stored feeInfo files
+var analysisInfoFormatVersion = '1.2.0'  // should change anytime things are added to the stored feeInfo files
 
 var hoursToLookBack =  10//24*3
 var blocksToLookBack = hoursToLookBack*6 // ~6 blocks per hour
@@ -66,19 +66,16 @@ getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
     var segwitFraction = (segwitTransactions.length+1)/(segwitTransactions.length+legacyTransactions.length+2)
     console.log(Math.round(segwitFraction*100)+'% segwit transactions ('+(segwitTransactions.length+1)+'/'+(segwitTransactions.length+legacyTransactions.length+2)+')')
 
-
-
     // transaction count estimates taking batching into account
     var segwitTxEstimate = segwitTransactions.length+cai.segwitBatchOutputsSum-cai.segwitBatchedTxs
     var legacyTxEstimate = legacyTransactions.length+cai.legacyBatchOutputsSum-cai.legacyBatchedTxs
 
     var totalBatchOutputs = cai.segwitBatchOutputsSum + cai.legacyBatchOutputsSum// minus change output
 
-
-//    console.log("Batch Transactions : \t\t"+combinedAnalysisInfo.batchedTxs+' transactions')
-//    console.log("Avg transactions per batch: \t\t"+(combinedAnalysisInfo.batchOutputsSum/combinedAnalysisInfo.batchedTxs) +' sat/byte')
-
     console.log(Math.round(totalBatchOutputs*100/(segwitTxEstimate+legacyTxEstimate))+'% transactions batched (estimated) ('+(totalBatchOutputs)+'/'+(segwitTxEstimate+legacyTxEstimate)+')')
+
+    var feePerBatchedTx = (cai.legacyBatchTxFeeSum+cai.segwitBatchTxFeeSum)/(cai.legacyBatchTxSizeSum+cai.segwitBatchTxSizeSum)
+    console.log("Avg fee per batched transaction: "+renderPrecision(feePerBatchedTx,1)+' sat/byte')
 
     console.log("CPFPs found: "+combinedAnalysisInfo.cpfpCount)
     console.log()
@@ -110,12 +107,15 @@ getLastXAnalysisInfo(blocksToLookBack).then(function(analysisInfoObjects) {
         console.log(k+" sat/byte: "+tabs+segwitStat+afterTabs+legacyPercent+'% ('+legacyCount+')\ttransactions')
     }
 
-    console.log("Batch Transactions : \t\t"+cai.segwitBatchedTxs+'\t\t'+cai.legacyBatchedTxs+'\t\ttransactions')
+    console.log("Batch Transactions: \t\t"+cai.segwitBatchedTxs+'\t\t'+cai.legacyBatchedTxs+'\t\ttransactions')
     console.log("Avg transactions per batch: \t"+renderPrecision(cai.segwitBatchOutputsSum/cai.segwitBatchedTxs,1)+'\t\t'
         +renderPrecision(cai.legacyBatchOutputsSum/cai.legacyBatchedTxs,1)+'\t\tbatched-transactions/batch'
     )
     console.log("Estimated % batched txns: \t"+renderPrecision(100*cai.segwitBatchOutputsSum/segwitTxEstimate, 1)+'%\t\t'
         + renderPrecision(100*cai.legacyBatchOutputsSum/legacyTxEstimate, 1)+'%'
+    )
+    console.log("Avg fee per batched tx: \t"+renderPrecision(cai.segwitBatchTxFeeSum/cai.segwitBatchTxSizeSum,1)+'\t\t'
+        +renderPrecision(cai.legacyBatchTxFeeSum/cai.legacyBatchTxSizeSum,1)+'\t\tsat/byte'
     )
 })
 
@@ -188,16 +188,19 @@ function combineBlockStatistics(reverseSortedAnalyzationInfo) {
         acc.sortedLegacyFeeRates = acc.sortedLegacyFeeRates.concat(feeInfo.legacyFeeRates)
 
         function findBatchInfo(transactions) {
-            var batchedTxs = 0
-            var batchOutputsSum = transactions.reduce(function(acc,t) {
+            var batchOutputsSum = 0, batchedTxs = 0, batchTxFeeSum = 0, batchTxSizeSum = 0
+            transactions.forEach(function(t) {
                 if(t.outputCount > 2* t.groupTxCount) {
+                    batchOutputsSum += t.outputCount - 2*t.groupTxCount
                     batchedTxs++
-                    return acc + t.outputCount - 2*t.groupTxCount
-                } else return acc
-            },0)
+                    batchTxFeeSum += t.feePerByte*t.groupSize
+                    batchTxSizeSum += t.groupSize
+                }
+            })
 
             return {
-                batchedTxs:batchedTxs, batchOutputsSum:batchOutputsSum
+                batchedTxs:batchedTxs, batchOutputsSum:batchOutputsSum,
+                batchTxFeeSum:batchTxFeeSum, batchTxSizeSum:batchTxSizeSum
             }
         }
 
@@ -208,6 +211,11 @@ function combineBlockStatistics(reverseSortedAnalyzationInfo) {
         acc.legacyBatchedTxs += legacyBatchInfo.batchedTxs
         acc.segwitBatchOutputsSum += segwitBatchInfo.batchOutputsSum
         acc.legacyBatchOutputsSum += legacyBatchInfo.batchOutputsSum
+
+        acc.segwitBatchTxFeeSum += segwitBatchInfo.batchTxFeeSum
+        acc.legacyBatchTxFeeSum += legacyBatchInfo.batchTxFeeSum
+        acc.segwitBatchTxSizeSum += segwitBatchInfo.batchTxSizeSum
+        acc.legacyBatchTxSizeSum += legacyBatchInfo.batchTxSizeSum
 
         if(feeInfo.outputCount > 2) {
             acc.batchedTxs++
@@ -224,7 +232,9 @@ function combineBlockStatistics(reverseSortedAnalyzationInfo) {
         sortedSegwitFeeRates: [],
         sortedLegacyFeeRates: [],
         segwitBatchedTxs: 0, legacyBatchedTxs: 0,
-        segwitBatchOutputsSum:0, legacyBatchOutputsSum:0
+        segwitBatchOutputsSum:0, legacyBatchOutputsSum:0,
+        segwitBatchTxFeeSum:0, legacyBatchTxFeeSum:0,
+        segwitBatchTxSizeSum:0, legacyBatchTxSizeSum:0
 
     })
 
@@ -342,7 +352,8 @@ function analyzeFees(block) {
         txSet.push({
             feePerByte:feePerByte,//, group:group
             outputCount: outputCount,
-            groupTxCount: group.length
+            groupTxCount: group.length,
+            groupSize: groupSize // in bytes
         })
     })
 
